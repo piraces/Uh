@@ -158,13 +158,15 @@ elsif ARGV.length >= 1 then
 							resultado = session.exec!("puppet apply module install" + timeStampPuppet.to_s + "stbenjam-ipaclient-2.4.1.tar.gz --ignore-dependencies")
 							print resultado
 							print "\n"
+							# Configuración automática de la máquina.
 							resultado = session.exec!("puppet apply --debug" + timeStampPuppet.to_s + "confIpaClient.pp")
 							print resultado
 							print "\n"
+							# Borrado de los ficheros temporales.
 							resultado = session.exec!("rm -rf " + timeStampPuppet.to_s + "stbenjam-ipaclient-2.4.1.tar.gz")
 							resultado = session.exec!("rm -rf " + timeStampPuppet.to_s + "puppetlabs-stdlib-4.5.0.tar.gz")	
 							resultado = session.exec!("rm -rf " + timeStampPuppet.to_s + "confIpaClient.pp")
-					# Comando s/c sin comando/manifiesto remoto a ejecutar.
+					# Comando s/c/n sin comando/manifiesto remoto a ejecutar.
 					else
 						print "No se ha introducido ningun comando, manifiesto o módulo \n"
 						print uso, "\n"
