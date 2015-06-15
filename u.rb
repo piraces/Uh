@@ -146,15 +146,27 @@ elsif ARGV.length >= 1 then
 							# Comienza una sesión ssh, ejecuta el comando e imprime el resultado.
 							Net::SSH.start(line.chomp, user, :timeout => timeSSH) do |session|
 							timeStampPuppet = (Time.now.to_f * 1000).to_i
-							# Copia temporal del fichero manifiesto a remoto.
-							session.scp.upload! (confModulos + instruccion), (timeStampPuppet.to_s + instruccion)
-							session.scp.upload! (confManifiestos + "confIpaClient"), (timeStampPuppet.to_s + "confIpaClient")
-							resultado = session.exec!("puppet apply module install" +timeStampPuppet.to_s ")
-							resultado = session.exec!("puppet apply " + timeStampPuppet.to_s + instruccion + ";" + 
-									"rm -rf " + timeStampPuppet.to_s + instruccion)
+							# Copia temporal de los modulos a remoto.
+							session.scp.upload! (confModulos + instruccion), (timeStampPuppet.to_s + "stbenjam-ipaclient-2.4.1.tar.gz")
+							session.scp.upload! (confModulos + instruccion), (timeStampPuppet.to_s + "puppetlabs-stdlib-4.5.0.tar.gz")
+							# Copia temporal del manifiesto de arranque a remoto.
+							session.scp.upload! (confManifiestos + "confIpaClient.pp"), (timeStampPuppet.to_s + "confIpaClient.pp")
+							# Intalacion de los modulos puppet.
+							resultado = session.exec!("puppet apply module install" + timeStampPuppet.to_s + "puppetlabs-stdlib-4.5.0.tar.gz --ignore-dependencies")
+							print resultado
+							print "\n"
+							resultado = session.exec!("puppet apply module install" + timeStampPuppet.to_s + "stbenjam-ipaclient-2.4.1.tar.gz --ignore-dependencies")
+							print resultado
+							print "\n"
+							resultado = session.exec!("puppet apply --debug" + timeStampPuppet.to_s + "confIpaClient.pp")
+							print resultado
+							print "\n"
+							resultado = session.exec!("rm -rf " + timeStampPuppet.to_s + "stbenjam-ipaclient-2.4.1.tar.gz")
+							resultado = session.exec!("rm -rf " + timeStampPuppet.to_s + "puppetlabs-stdlib-4.5.0.tar.gz")	
+							resultado = session.exec!("rm -rf " + timeStampPuppet.to_s + "confIpaClient.pp")
 					# Comando s/c sin comando/manifiesto remoto a ejecutar.
 					else
-						print "No se ha introducido ningun comando o manifiesto...\n"
+						print "No se ha introducido ningun comando, manifiesto o módulo \n"
 						print uso, "\n"
 					end
 					num += 1
