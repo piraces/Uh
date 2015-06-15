@@ -38,6 +38,7 @@ uso = "Ejecucion: u (p | s | c) \[\"comando\" | \"manifiesto\" \]"
 # Variables principales de configuración del script.
 confPath = "~/.u/hosts"
 confManifiestos = ENV['HOME'] + "/.u/manifiestos/"
+confModulos = ENV['HOME'] + "/.u/modulos/"
 time = 0.01
 timeSSH = 10
 port = 22
@@ -71,7 +72,7 @@ elsif ARGV.length >= 1 then
 		print uso, "\n"
 	end
 	# Caso de comando correcto.
-	if comando == "p" || comando == "s" || comando == "c" then
+	if comando == "p" || comando == "s" || comando == "c" || comando == "n" then
 		num = 1
 		# Lectura de fichero.
 		File.open(File.expand_path(confPath), "r") do |file|
@@ -138,6 +139,18 @@ elsif ARGV.length >= 1 then
 						rescue Exception
 							print "maquina",num,": falla\n"
 						end
+					# Comando n: automatizar la configuración de clientes ntp, dns y nfs mediante módulos puppet
+					elsif (instruccion.length > 0) and (comando == "n") then
+						begin
+							resultado = ""
+							# Comienza una sesión ssh, ejecuta el comando e imprime el resultado.
+							Net::SSH.start(line.chomp, user, :timeout => timeSSH) do |session|
+							timeStampPuppet = (Time.now.to_f * 1000).to_i
+							# Copia temporal del fichero manifiesto a remoto.
+							session.scp.upload! (confModulos + instruccion), (timeStampPuppet.to_s + instruccion)
+							session.scp.upload! (confManifiestos + "confIpaClient"), ()
+							resultado = session.exec!("puppet apply " + timeStampPuppet.to_s + instruccion + ";" + 
+									"rm -rf " + timeStampPuppet.to_s + instruccion)
 					# Comando s/c sin comando/manifiesto remoto a ejecutar.
 					else
 						print "No se ha introducido ningun comando o manifiesto...\n"
