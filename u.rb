@@ -148,7 +148,8 @@ elsif ARGV.length >= 1 then
 							timeStampPuppet = (Time.now.to_f * 1000).to_i
 							# Copia temporal del fichero manifiesto a remoto.
 							session.scp.upload! (confModulos + instruccion), (timeStampPuppet.to_s + instruccion)
-							session.scp.upload! (confManifiestos + "confIpaClient"), ()
+							session.scp.upload! (confManifiestos + "confIpaClient"), (timeStampPuppet.to_s + "confIpaClient")
+							resultado = session.exec!("puppet apply module install" +timeStampPuppet.to_s ")
 							resultado = session.exec!("puppet apply " + timeStampPuppet.to_s + instruccion + ";" + 
 									"rm -rf " + timeStampPuppet.to_s + instruccion)
 					# Comando s/c sin comando/manifiesto remoto a ejecutar.
