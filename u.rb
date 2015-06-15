@@ -21,12 +21,18 @@
 # en este segundo parámetro, ningún grupo o máquina, se aplica a toda la lista de hosts 
 # (de forma única para cada máquina que pueda estar en varios grupos).
 
+# Comando n: configura un cliente ntp,dns y nfs (freeipa) mediante módulos puppet en las
+# máquinas seleccionadas en el segundo parámetro. Los módulos puppet residen en en subdirectorio
+# ~/.u/modulos.
+
 # -----------------------------------------------------------------------------------
-# Ejecución: u (p | s | c) ["comando" | "manifiesto"]
+# Ejecución: u (p | s | c | n) ["comando" | "manifiesto"]
 # Salida comando "p": máquina_<num>: FUNCIONA/falla. Una máquina por linea.
 # Salida comando "s": máquina<num>: exito/fallo [stdout]. Una máquina por linea.
 # Salida comando "c": máquina_<num>: exito en conexion/falla [stdout]. Una máquina por 
-# linea.
+# línea.
+# Salida comando "n": máquina_<num>: exito en configuracion [stdout]. Una máquina por
+# línea.
 require 'socket'
 require 'timeout'
 require 'net/ssh'
@@ -151,7 +157,7 @@ elsif ARGV.length >= 1 then
 							session.scp.upload! (confModulos + instruccion), (timeStampPuppet.to_s + "puppetlabs-stdlib-4.5.0.tar.gz")
 							# Copia temporal del manifiesto de arranque a remoto.
 							session.scp.upload! (confManifiestos + "confIpaClient.pp"), (timeStampPuppet.to_s + "confIpaClient.pp")
-							# Intalacion de los modulos puppet.
+							# Intalación de los modulos puppet.
 							resultado = session.exec!("puppet apply module install" + timeStampPuppet.to_s + "puppetlabs-stdlib-4.5.0.tar.gz --ignore-dependencies")
 							print resultado
 							print "\n"
