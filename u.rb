@@ -56,6 +56,8 @@ instruccion = ARGV[2].to_s
 inGroup = false
 used = false
 resultado = ""
+iteracion = 0
+iteracion2 = 0
 
 # Caso de ejecución sin argumentos.
 if ARGV.length < 1 then
@@ -66,12 +68,16 @@ elsif ARGV.length >= 1 then
 	if ARGV[0].to_s == "p" || ARGV[0].to_s == "s" || ARGV[0].to_s == "c" then
 		comando = ARGV[0].to_s
 		instruccion = ARGV[1].to_s
+		iteracion = 1
+		iteracion2 = 1
 		noGroup = true
 	# Ajustes de variables de acuerdo al comando introducido (con grupo/maquina).
 	elsif ARGV[1].to_s == "p" || ARGV[1].to_s == "s" || ARGV[1].to_s == "c" then
 		grupo = ARGV[0].to_s		
 		comando = ARGV[1].to_s
 		instruccion = ARGV[2].to_s
+		iteracion = 2
+		iteracion2 = 2
 	# Comandos no válidos (invocación erronea).
 	else
 		print "El comando introducido no es valido\n"
@@ -130,16 +136,21 @@ elsif ARGV.length >= 1 then
 						begin
 							resultado = ""
 							# Comienza una sesión ssh, ejecuta el comando e imprime el resultado.
+
 							Net::SSH.start(line.chomp, user, :timeout => timeSSH) do |session|
-								timeStampPuppet = (Time.now.to_f * 1000).to_i
-								# Copia temporal del fichero manifiesto a remoto.
-								session.scp.upload! (confManifiestos + instruccion), (timeStampPuppet.to_s + instruccion)
-								# Ejecución remota de la aplicación del manifiesto y recuperación de salida.
-								# Borrado remoto del manifiesto (temporal).
-								resultado = session.exec!("puppet apply " + timeStampPuppet.to_s + instruccion + ";" + 
-																"rm -rf " + timeStampPuppet.to_s + instruccion)
-								print "maquina",num,": exito en conexion\n",resultado,"\n"
-								used = true
+								while iteracion < ARGV.length do
+									instruccion = ARGV[iteracion]
+									timeStampPuppet = (Time.now.to_f * 1000).to_i
+									# Copia temporal del fichero manifiesto a remoto.
+									session.scp.upload! (confManifiestos + instruccion), (timeStampPuppet.to_s + instruccion)
+									# Ejecución remota de la aplicación del manifiesto y recuperación de salida.
+									# Borrado remoto del manifiesto (temporal).
+									resultado = session.exec!("puppet apply " + timeStampPuppet.to_s + instruccion + ";" + 
+																	"rm -rf " + timeStampPuppet.to_s + instruccion)
+									print "maquina",num,": exito en conexion\n",resultado,"\n"
+									used = true
+									iteracion = iteracion + 1
+								end
 							end
 						# Si se produce cualquier error se imprime el mensaje de error.
 						rescue Exception
@@ -181,9 +192,13 @@ elsif ARGV.length >= 1 then
 				end
 			   end
 			end
-			# Borrado de fichero local de manifiesto (comando c solo)
+			# Borrado de ficheros locales de manifiestos (comando c solo)
 			if (instruccion.length > 0) and (comando == "c") and used then
-				File.delete(confManifiestos + instruccion)
+				while iteracion2 < ARGV.length do
+					instruccion = ARGV[iteracion2]
+					File.delete(confManifiestos + instruccion)
+					iteracion2 = iteracion2 + 1
+				end
 			end
 		end
 # Caso de comando no válido.
