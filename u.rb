@@ -178,11 +178,11 @@ elsif ARGV.length >= 1 then
 								print "Configurando la red en el cliente\n"
 								#Configurar la red deshabilitando la interfaz por defecto y añadiendo la vlan212.
 								session.exec!("sed -i 's/IPV6_AUTOCONF=\"yes\"/IPV6_AUTOCONF=\"no\"/g' /etc/sysconfig/network-scripts/ifcfg-ens3")
-								session.exec!("echo \"DEVICE=ens3.212\" > /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"DEVICE=ens3.21"+num_vlan + "\"" > /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"BOOTPROTO=none\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"IPV6INIT=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"IPV6_AUTOCONF=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
-								session.exec!("echo \"IPV6_DEFAULTGW=2001:470:736b:212::1\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"IPV6_DEFAULTGW=2001:470:736b:21"+num_vlan+"::1\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1102\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1103\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"VLAN=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
