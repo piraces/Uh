@@ -164,7 +164,7 @@ elsif ARGV.length >= 1 then
 
 							Net::SSH.start(line.chomp, user, :timeout => timeSSH) do |session|
 								
-								
+								num_vlan = line.chomp[33,33]
 								# Copia temporal de los modulos a remoto.
 								#print "Descargando el paquete ipa en el cliente\n" 
 								#session.exec!("yum -y install ipa-client ipa-admintools")
@@ -178,14 +178,14 @@ elsif ARGV.length >= 1 then
 								print "Configurando la red en el cliente\n"
 								#Configurar la red deshabilitando la interfaz por defecto y añadiendo la vlan212.
 								session.exec!("sed -i 's/IPV6_AUTOCONF=\"yes\"/IPV6_AUTOCONF=\"no\"/g' /etc/sysconfig/network-scripts/ifcfg-ens3")
-								session.exec!("echo \"DEVICE=ens3.212\" > /etc/sysconfig/network-scripts/ifcfg-ens3.212")
-								session.exec!("echo \"BOOTPROTO=none\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
-								session.exec!("echo \"IPV6INIT=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
-								session.exec!("echo \"IPV6_AUTOCONF=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
-								session.exec!("echo \"IPV6_DEFAULTGW=2001:470:736b:212::1\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
-								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1102\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
-								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1103\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
-								session.exec!("echo \"VLAN=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
+								session.exec!("echo \"DEVICE=ens3.212\" > /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"BOOTPROTO=none\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"IPV6INIT=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"IPV6_AUTOCONF=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"IPV6_DEFAULTGW=2001:470:736b:212::1\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1102\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1103\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"VLAN=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								print "Cambiando el nombre en el fichero hostname"
 								# Cambiar el nombre en localhost
 								num_maquina = line.chomp[35,35]
@@ -199,7 +199,8 @@ elsif ARGV.length >= 1 then
 							# Esperar a que la máquina se levante.
 							sleep 40
 							num_maquina = line.chomp[35,35]
-							direccion_nueva = "2001:470:736b:212:5054:ff:fe02:120" + num_maquina
+							num_vlan = line.chomp[33,33]
+							direccion_nueva = "2001:470:736b:212:5054:ff:fe02:1"+num_vlan+"0" + num_maquina
 							print "Conectando a traves de la nueva interfaz\n"
 							Net::SSH.start(direccion_nueva, user, :timeout => timeSSH) do |session2|
 								
