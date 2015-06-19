@@ -1,54 +1,54 @@
 #!/usr/bin/env ruby
 
-# Autores: Raúl Piracés Alastuey - 490790, Luis Jesús Pellicer Magallón - 520256
+# Autores: Raúl Piraces Alastuey - 490790, Luis Jesús Pellicer Magallon - 520256
 # -----------------------------------------------------------------------------------
-# Diseño e implementación de una herramienta de ejecución remota,
-# despliegue y configuración automática.
+# Diseño e implementacion de una herramienta de ejecucion remota,
+# despliegue y configuracion automatica.
 
-# La configuración debe encontrarse en "~/.u/hosts" para una ejecución correcta.
+# La configuracion debe encontrarse en "~/.u/hosts" para una ejecucion correcta.
 
-# Comando p: ejecuta ping al puerto 22 a todas las máquinas establecidas en
-# el fichero de configuración establecido (deben de ser nombres DNS o IPs).
+# Comando p: ejecuta ping al puerto 22 a todas las maquinas establecidas en
+# el fichero de configuracion establecido (deben de ser nombres DNS o IPs).
 # Este comando consta de un timeout por defecto de 0.01s.
 
-# Comando s: ejecuta un comando remoto mediante ssh a todo el grupo de máquinas
-# establecidas en el fichero de configuración (el comando debe de ir entre comillas).
-# Si no se tienen claves ssh, se realiza petición de contraseña por pantalla.
+# Comando s: ejecuta un comando remoto mediante ssh a todo el grupo de maquinas
+# establecidas en el fichero de configuracion (el comando debe de ir entre comillas).
+# Si no se tienen claves ssh, se realiza peticion de contraseña por pantalla.
 # El usuario por defecto es a490790. El timeout para ssh por defecto son 10s.
 
-# Comando c (de configuración) : aplica un manifiesto Puppet, que reside en el directorio
-# ~/.u/manifiestos, en la máquinas selecionadas en el segundo parámetro. Si no se indica, 
-# en este segundo parámetro, ningún grupo o máquina, se aplica a toda la lista de hosts 
-# (de forma única para cada máquina que pueda estar en varios grupos).
+# Comando c (de configuracion) : aplica un manifiesto Puppet, que reside en el directorio
+# ~/.u/manifiestos, en la maquinas selecionadas en el segundo parametro. Si no se indica, 
+# en este segundo parametro, ningún grupo o maquina, se aplica a toda la lista de hosts 
+# (de forma única para cada maquina que pueda estar en varios grupos).
 
-# Comando n: configura un cliente ntp,dns y nfs (freeipa) mediante módulos puppet en las
-# máquinas seleccionadas en el segundo parámetro. Los módulos puppet residen en en subdirectorio
+# Comando n: configura un cliente ntp,dns y nfs (freeipa) mediante modulos puppet en las
+# maquinas seleccionadas en el segundo parametro. Los modulos puppet residen en en subdirectorio
 # ~/.u/modulos.
 
 # -----------------------------------------------------------------------------------
-# Ejecución: u (p | s | c | n) ["comando" | "manifiesto"]
-# Salida comando "p": máquina_<num>: FUNCIONA/falla. Una máquina por linea.
-# Salida comando "s": máquina<num>: exito/fallo [stdout]. Una máquina por linea.
-# Salida comando "c": máquina_<num>: exito en conexion/falla [stdout]. Una máquina por 
-# línea.
-# Salida comando "n": máquina_<num>: exito en configuracion [stdout]. Una máquina por
-# línea.
+# Ejecucion: u (p | s | c | n) ["comando" | "manifiesto"]
+# Salida comando "p": maquina_<num>: FUNCIONA/falla. Una maquina por linea.
+# Salida comando "s": maquina<num>: exito/fallo [stdout]. Una maquina por linea.
+# Salida comando "c": maquina_<num>: exito en conexion/falla [stdout]. Una maquina por 
+# linea.
+# Salida comando "n": maquina_<num>: exito en configuracion [stdout]. Una maquina por
+# linea.
 require 'socket'
 require 'timeout'
 require 'net/ssh'
 require 'net/scp'
 
 # Variable para imprimir por pantalla el uso del script.
-uso = "Ejecucion: u (p | s | c) \[\"comando\" | \"manifiesto\" \]"
+uso = "Ejecucion: u (p | s | c | n) \[\"comando\" | \"manifiesto\" \]"
 
-# Variables principales de configuración del script.
+# Variables principales de configuracion del script.
 confPath = "~/.u/hosts"
 confManifiestos = ENV['HOME'] + "/.u/manifiestos/"
 confModulos = ENV['HOME'] + "/.u/modulos/"
 time = 0.01
 timeSSH = 10
 port = 22
-user = "a490790"
+user = "root"
 noGroup = false
 grupo = ARGV[0].to_s		
 comando = ARGV[1].to_s
@@ -59,26 +59,26 @@ resultado = ""
 iteracion = 0
 iteracion2 = 0
 
-# Caso de ejecución sin argumentos.
+# Caso de ejecucion sin argumentos.
 if ARGV.length < 1 then
 	print "No se ha introducido ningun argumento...\n"
 	print uso, "\n"
 elsif ARGV.length >= 1 then
 	# Ajustes de variables de acuerdo al comando introducido (sin grupo).
-	if ARGV[0].to_s == "p" || ARGV[0].to_s == "s" || ARGV[0].to_s == "c" then
+	if ARGV[0].to_s == "p" || ARGV[0].to_s == "s" || ARGV[0].to_s == "c" || ARGV[0].to_s == "n" then
 		comando = ARGV[0].to_s
 		instruccion = ARGV[1].to_s
 		iteracion = 1
 		iteracion2 = 1
 		noGroup = true
 	# Ajustes de variables de acuerdo al comando introducido (con grupo/maquina).
-	elsif ARGV[1].to_s == "p" || ARGV[1].to_s == "s" || ARGV[1].to_s == "c" then
+	elsif ARGV[1].to_s == "p" || ARGV[1].to_s == "s" || ARGV[1].to_s == "c" || ARGV[1].to_s == "n" then
 		grupo = ARGV[0].to_s		
 		comando = ARGV[1].to_s
 		instruccion = ARGV[2].to_s
 		iteracion = 2
 		iteracion2 = 2
-	# Comandos no válidos (invocación erronea).
+	# Comandos no validos (invocacion erronea).
 	else
 		print "El comando introducido no es valido\n"
 		print uso, "\n"
@@ -89,7 +89,7 @@ elsif ARGV.length >= 1 then
 		# Lectura de fichero.
 		File.open(File.expand_path(confPath), "r") do |file|
 			file.each_line do |line|
-				# Gestión de grupos de máquinas, máquina de la lista (o lista entera).
+				# Gestion de grupos de maquinas, maquina de la lista (o lista entera).
 				if line[0] == '-' then
 					if (line[1..-2] == grupo) then
 						inGroup = true
@@ -97,12 +97,12 @@ elsif ARGV.length >= 1 then
 						inGroup = false
 					end
 				elsif ((noGroup == true) or (inGroup == true) or (line.strip == grupo)) and (line.strip != "")
-					# Comando p: ping a máquina con timeout.
+					# Comando p: ping a maquina con timeout.
 					if comando == "p" then
 						error = 0
 						begin
 							begin
-								# Ejecuta una petición al host y puerto con timeout
+								# Ejecuta una peticion al host y puerto con timeout
 								Timeout.timeout(time) do 
 								TCPSocket.open(line.chomp,port)
 							end
@@ -119,10 +119,10 @@ elsif ARGV.length >= 1 then
 						if error == 0 then 
 							print "maquina_",num,": FUNCIONA\n"
 						end
-					# Comando s: ejecución remota por ssh.
+					# Comando s: ejecucion remota por ssh.
 					elsif (instruccion.length > 0) and (comando == "s") then
 						begin
-							# Comienza una sesión ssh, ejecuta el comando e imprime el resultado.
+							# Comienza una sesion ssh, ejecuta el comando e imprime el resultado.
 							Net::SSH.start(line.chomp, user, :timeout => timeSSH) do |session|
 								resultado = session.exec!(instruccion)
 								print "maquina",num,": exito\n",resultado,"\n"
@@ -131,11 +131,11 @@ elsif ARGV.length >= 1 then
 						rescue Exception
 							print "maquina",num,": falla\n"
 						end
-					# Comando c: aplicación remota de manifiestos Puppet.
+					# Comando c: aplicacion remota de manifiestos Puppet.
 					elsif (instruccion.length > 0) and (comando == "c") then
 						begin
 							resultado = ""
-							# Comienza una sesión ssh, ejecuta el comando e imprime el resultado.
+							# Comienza una sesion ssh, ejecuta el comando e imprime el resultado.
 
 							Net::SSH.start(line.chomp, user, :timeout => timeSSH) do |session|
 								while iteracion < ARGV.length do
@@ -143,7 +143,7 @@ elsif ARGV.length >= 1 then
 									timeStampPuppet = (Time.now.to_f * 1000).to_i
 									# Copia temporal del fichero manifiesto a remoto.
 									session.scp.upload! (confManifiestos + instruccion), (timeStampPuppet.to_s + instruccion)
-									# Ejecución remota de la aplicación del manifiesto y recuperación de salida.
+									# Ejecucion remota de la aplicacion del manifiesto y recuperacion de salida.
 									# Borrado remoto del manifiesto (temporal).
 									resultado = session.exec!("puppet apply " + timeStampPuppet.to_s + instruccion + ";" + 
 																	"rm -rf " + timeStampPuppet.to_s + instruccion)
@@ -156,36 +156,77 @@ elsif ARGV.length >= 1 then
 						rescue Exception
 							print "maquina",num,": falla\n"
 						end
-					# Comando n: automatizar la configuración de clientes ntp, dns y nfs mediante módulos puppet
+					# Comando n: automatizar la configuracion de clientes ntp, dns y nfs mediante modulos puppet
 					elsif (instruccion.length > 0) and (comando == "n") then
 						begin
 							resultado = ""
-							# Comienza una sesión ssh, ejecuta el comando e imprime el resultado.
+							# Comienza una sesion ssh, ejecuta el comando e imprime el resultado.
+
 							Net::SSH.start(line.chomp, user, :timeout => timeSSH) do |session|
-							timeStampPuppet = (Time.now.to_f * 1000).to_i
-							# Copia temporal de los modulos a remoto.
-							session.scp.upload! (confModulos + instruccion), (timeStampPuppet.to_s + "stbenjam-ipaclient-2.4.1.tar.gz")
-							session.scp.upload! (confModulos + instruccion), (timeStampPuppet.to_s + "puppetlabs-stdlib-4.5.0.tar.gz")
-							# Copia temporal del manifiesto de arranque a remoto.
-							session.scp.upload! (confManifiestos + "confIpaClient.pp"), (timeStampPuppet.to_s + "confIpaClient.pp")
-							# Intalación de los modulos puppet.
-							resultado = session.exec!("puppet apply module install" + timeStampPuppet.to_s + "puppetlabs-stdlib-4.5.0.tar.gz --ignore-dependencies")
-							print resultado
-							print "\n"
-							resultado = session.exec!("puppet apply module install" + timeStampPuppet.to_s + "stbenjam-ipaclient-2.4.1.tar.gz --ignore-dependencies")
-							print resultado
-							print "\n"
-							# Configuración automática de la máquina.
-							resultado = session.exec!("puppet apply --debug" + timeStampPuppet.to_s + "confIpaClient.pp")
-							print resultado
-							print "\n"
-							# Borrado de los ficheros temporales.
-							resultado = session.exec!("rm -rf " + timeStampPuppet.to_s + "stbenjam-ipaclient-2.4.1.tar.gz")
-							resultado = session.exec!("rm -rf " + timeStampPuppet.to_s + "puppetlabs-stdlib-4.5.0.tar.gz")	
-							resultado = session.exec!("rm -rf " + timeStampPuppet.to_s + "confIpaClient.pp")
+								
+								
+								# Copia temporal de los modulos a remoto.
+								#print "Descargando el paquete ipa en el cliente\n" 
+								#session.exec!("yum -y install ipa-client ipa-admintools")
+								print "Transfiriendo modulos puppet al nuevo cliente.\n"
+								session.scp.upload! (confModulos + "stbenjam-ipaclient-2.4.1.tar.gz"), ("/tmp/stbenjam-ipaclient-2.4.1.tar.gz")
+								session.scp.upload! (confModulos + "puppetlabs-stdlib-4.6.0.tar.gz"), ("/tmp/puppetlabs-stdlib-4.6.0.tar.gz")
+								
+								print "Transfiriendo manifiesto de configuracion del freeipa\n"
+								# Copia temporal del manifiesto de arranque a remoto.
+								session.scp.upload! (confManifiestos + "confIpaClient.pp"), ("/tmp/" + "confIpaClient.pp")
+								print "Configurando la red en el cliente\n"
+								#Configurar la red deshabilitando la interfaz por defecto y añadiendo la vlan212.
+								session.exec!("sed -i 's/IPV6_AUTOCONF=\"yes\"/IPV6_AUTOCONF=\"no\"/g' /etc/sysconfig/network-scripts/ifcfg-ens3")
+								session.exec!("echo \"DEVICE=ens3.212\" > /etc/sysconfig/network-scripts/ifcfg-ens3.212")
+								session.exec!("echo \"BOOTPROTO=none\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
+								session.exec!("echo \"IPV6INIT=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
+								session.exec!("echo \"IPV6_AUTOCONF=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
+								session.exec!("echo \"IPV6_DEFAULTGW=2001:470:736b:212::1\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
+								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1102\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
+								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1103\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
+								session.exec!("echo \"VLAN=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.212")
+								print "Cambiando el nombre en el fichero hostname"
+								# Cambiar el nombre en localhost
+								num_maquina = line.chomp[35,35]
+								session.exec!("echo \"cliente" + num_maquina+".1.2.ff.es.eu.org\" > /etc/hostname")
+								# Reiniciar la maquina e instalar modulos puppet.
+								print "Reiniciando la maquina\n"
+								session.exec!("shutdown -r now")
+							end
+						rescue Exception
+							print "Esperando a que la maquina se reinicie\n"
+							# Esperar a que la máquina se levante.
+							sleep 40
+							num_maquina = line.chomp[35,35]
+							direccion_nueva = "2001:470:736b:212:5054:ff:fe02:120" + num_maquina
+							print "Conectando a traves de la nueva interfaz\n"
+							Net::SSH.start(direccion_nueva, user, :timeout => timeSSH) do |session2|
+								
+								print "Instalando modulos puppet.\n"
+								# Intalacion de los modulos puppet.
+								resultado = session2.exec!("puppet module install " + "/tmp/puppetlabs-stdlib-4.6.0.tar.gz --ignore-dependencies")
+								print resultado
+								resultado = session2.exec!("puppet module install " + "/tmp/stbenjam-ipaclient-2.4.1.tar.gz --ignore-dependencies")
+								print resultado
+								print "Configurando freeipa\n"
+								# Configuracion automatica de la maquina.
+								resultado = session2.exec!("puppet apply --debug /tmp/" + "confIpaClient.pp")
+								print resultado
+
+								print "Borrando ficheros temporales"
+								sleep 20
+								# Borrado de los ficheros temporales.
+								resultado = session2.exec!("rm -rf " + "/tmp/stbenjam-ipaclient-2.4.1.tar.gz")
+								resultado = session2.exec!("rm -rf " + "/tmp/puppetlabs-stdlib-4.5.0.tar.gz")	
+								resultado = session2.exec!("rm -rf /tmp/" + "confIpaClient.pp")
+								
+							end
+						end
+
 					# Comando s/c/n sin comando/manifiesto remoto a ejecutar.
 					else
-						print "No se ha introducido ningun comando, manifiesto o módulo \n"
+						print "No se ha introducido ningun comando, manifiesto o modulo \n"
 						print uso, "\n"
 					end
 					num += 1
@@ -201,7 +242,7 @@ elsif ARGV.length >= 1 then
 				end
 			end
 		end
-# Caso de comando no válido.
+# Caso de comando no valido.
 else
 	print "El comando introducido no es valido\n"
 	print uso, "\n"
