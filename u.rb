@@ -164,7 +164,8 @@ elsif ARGV.length >= 1 then
 
 							Net::SSH.start(line.chomp, user, :timeout => timeSSH) do |session|
 								
-								num_vlan = line.chomp[33,33]
+								num_vlan = line.chomp[34..34]
+								
 								# Copia temporal de los modulos a remoto.
 								#print "Descargando el paquete ipa en el cliente\n" 
 								#session.exec!("yum -y install ipa-client ipa-admintools")
@@ -178,7 +179,7 @@ elsif ARGV.length >= 1 then
 								print "Configurando la red en el cliente\n"
 								#Configurar la red deshabilitando la interfaz por defecto y añadiendo la vlan212.
 								session.exec!("sed -i 's/IPV6_AUTOCONF=\"yes\"/IPV6_AUTOCONF=\"no\"/g' /etc/sysconfig/network-scripts/ifcfg-ens3")
-								session.exec!("echo \"DEVICE=ens3.21"+num_vlan + "\"" > /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
+								session.exec!("echo \"DEVICE=ens3.21"+num_vlan + "\" > /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"BOOTPROTO=none\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"IPV6INIT=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"IPV6_AUTOCONF=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
@@ -186,9 +187,9 @@ elsif ARGV.length >= 1 then
 								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1102\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"DNS1=2001:470:736b:211:5054:ff:fe02:1103\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
 								session.exec!("echo \"VLAN=yes\" >> /etc/sysconfig/network-scripts/ifcfg-ens3.21" + num_vlan)
-								print "Cambiando el nombre en el fichero hostname"
+								print "Cambiando el nombre en el fichero hostname\n"
 								# Cambiar el nombre en localhost
-								num_maquina = line.chomp[35,35]
+								num_maquina = line.chomp[35..35]
 								session.exec!("echo \"cliente" + num_maquina+".1.2.ff.es.eu.org\" > /etc/hostname")
 								# Reiniciar la maquina e instalar modulos puppet.
 								print "Reiniciando la maquina\n"
@@ -198,9 +199,9 @@ elsif ARGV.length >= 1 then
 							print "Esperando a que la maquina se reinicie\n"
 							# Esperar a que la máquina se levante.
 							sleep 40
-							num_maquina = line.chomp[35,35]
-							num_vlan = line.chomp[33,33]
-							direccion_nueva = "2001:470:736b:212:5054:ff:fe02:1"+num_vlan+"0" + num_maquina
+							num_maquina = line.chomp[35..35]
+							num_vlan = line.chomp[34..34]
+							direccion_nueva = "2001:470:736b:21"+ num_vlan + ":5054:ff:fe1f:21"+ num_vlan + num_maquina
 							print "Conectando a traves de la nueva interfaz\n"
 							Net::SSH.start(direccion_nueva, user, :timeout => timeSSH) do |session2|
 								
