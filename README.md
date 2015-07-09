@@ -46,7 +46,7 @@ maquinas seleccionadas en el segundo parametro. Los modulos puppet residen en en
 
 # Ejecución y salidas:
 
-- Ejecucion: uh [grupo] (p | s | c | n) ["comando" | "manifiesto"]
+- Ejecucion: uh [ "grupo" ] (p | s | c | n) ["comando" | "manifiesto"]
 - Salida comando "p": maquina_<num>: FUNCIONA/falla. Una maquina por linea.
 - Salida comando "s": maquina<num>: exito/fallo [stdout]. Una maquina por linea.
 - Salida comando "c": maquina_<num>: exito en conexion/falla [stdout]. Una maquina por
