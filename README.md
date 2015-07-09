@@ -45,3 +45,7 @@ maquinas seleccionadas en el segundo parametro. Los modulos puppet residen en en
 - linea.
 - Salida comando "n": maquina_<num>: exito en configuracion [stdout]. Una maquina por
 - linea.
+
+# Licencia
+
+La herramienta esta bajo la licencia "GNU GENERAL PUBLIC LICENSE Version 2, June 1991", disponible en el fichero "LICENSE" (directorio raiz).
