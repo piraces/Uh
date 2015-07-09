@@ -13,7 +13,9 @@ desde el epositorio de puppet : https://forge.puppetlabs.com/.
 
 # Configuración y uso:
 La configuracion debe encontrarse en "~/.u/hosts" para una ejecucion correcta.
+
 Los manifiestos de Puppet deben encontrarse en el directorio "~/.uh/manifiestos".
+
 Los módulos de Puppet deben residir en el directorio "~/.uh/modulos".
 
 - Comando p: ejecuta ping al puerto 22 a todas las maquinas establecidas en
