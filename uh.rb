@@ -38,18 +38,23 @@ require 'timeout'
 require 'net/ssh'
 require 'net/scp'
 
+# Clase principal del programa Uh
 class Uh
 	# Variable para imprimir por pantalla el uso del script.
 	$uso = "Ejecucion: uh [grupo] (p | s | c | n) \[\"comando\" | \"manifiesto\" \]"
 
 	# Variables principales de configuracion del script.
+
+	# Variables modificables.
 	$confPath = "~/.uh/hosts"
 	$confManifiestos = ENV['HOME'] + "/.uh/manifiestos/"
 	$confModulos = ENV['HOME'] + "/.uh/modulos/"
-	$time = 0.01
+	$time = 0.1
 	$timeSSH = 10
 	$port = 22
-	$user = "root"
+	$user = "piraces"
+
+	# Variables no modificables (warning).
 	$noGroup = false
 	$grupo = ARGV[0].to_s
 	$comando = ARGV[1].to_s
@@ -132,6 +137,7 @@ class Uh
 						else
 								print "No se ha introducido ningun comando, manifiesto o modulo \n"
 								print $uso, "\n"
+								exit
 						end
 						$num += 1
 	end
@@ -180,9 +186,8 @@ class Uh
 		begin
 			resultado = ""
 			# Comienza una sesion ssh, ejecuta el comando e imprime el resultado.
-
 			Net::SSH.start(line.chomp, $user, :timeout => $timeSSH) do |session|
-				while iteracion < ARGV.length do
+				while $iteracion < ARGV.length do
 					$instruccion = ARGV[$iteracion]
 					timeStampPuppet = (Time.now.to_f * 1000).to_i
 					# Copia temporal del fichero manifiesto a remoto.
@@ -192,7 +197,7 @@ class Uh
 					resultado = session.exec!("puppet apply " + timeStampPuppet.to_s + $instruccion + ";" +
 													"rm -rf " + timeStampPuppet.to_s + $instruccion)
 					print "maquina",$num,": exito en conexion\n",resultado,"\n"
-					used = true
+					$used = true
 					$iteracion = $iteracion + 1
 				end
 			end
@@ -201,7 +206,7 @@ class Uh
 			print "maquina",$num,": falla\n"
 		end
 		# Borrado de ficheros locales de manifiestos (comando c solo)
-		if ($instruccion.length > 0) and ($comando == "c") and used then
+		if ($instruccion.length > 0) and ($comando == "c") and $used then
 			while $iteracion2 < ARGV.length do
 				$instruccion = ARGV[$iteracion2]
 				File.delete($confManifiestos + $instruccion)
