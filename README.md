@@ -44,6 +44,8 @@ en este segundo parametro, ningún grupo o maquina, se aplica a toda la lista de
 maquinas seleccionadas en el segundo parametro. Los modulos puppet residen en en subdirectorio
 ~/.uh/modulos.
 
+Otros aspectos de configuración de más bajo nivel, pueden ser modificados en el interior del script (sección "Variables modificables).
+
 # Ejecución y salidas:
 
 - Ejecucion: uh ("grupo") (p | s | c | n) ["comando" | "manifiesto"]
